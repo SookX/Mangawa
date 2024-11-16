@@ -44,8 +44,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt',
+    'graphene_django',
     'user',
 ]
+
+GRAPHENE = {
+    "SCHEMA": "server.schema.schema"
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
