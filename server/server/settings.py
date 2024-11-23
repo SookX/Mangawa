@@ -13,7 +13,10 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+import environ
 
+env = environ.Env()
+environ.Env.read_env()
 
 load_dotenv()
 
@@ -45,6 +48,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'user',
+    'cloudinary',
+    'cloudinary_storage',
+    'progress',
 ]
 
 REST_FRAMEWORK = {
@@ -157,3 +163,13 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'user.CustomUser'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': env('CLOUDINARY_API_KEY'),
+    'API_SECRET': env('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+MEDIA_URL = '/media/'
