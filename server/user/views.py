@@ -94,7 +94,7 @@ def login(request):
     }, status=status.HTTP_200_OK)
 
 @api_view(['POST', 'GET'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def user(request, id=None):
     if request.method == 'GET' and id is not None:
         user = get_object_or_404(CustomUser, pk=id)
