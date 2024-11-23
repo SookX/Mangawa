@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from .models import Progress
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated;
+from rest_framework import status
 
 CLOUDINARY_BASE_URL = "https://res.cloudinary.com/djm6yhqvx/image/upload/"
 
@@ -16,7 +17,7 @@ def progress(request, id=None):
         height = request.data.get('height')
 
         if not (weight and image and height):
-            return Response({"error": "All fields are required"}, status=400)
+            return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
         
         progress = Progress.objects.create(
             user=user,
@@ -32,11 +33,12 @@ def progress(request, id=None):
             "message": "Progress uploaded successfully",
             "image_url": progress.image.name,
             "progress_id": progress.id
-        })
+        }, status=status.HTTP_201_CREATED)
     
     if request.method == 'GET' and id is not None:
         progress = get_object_or_404(Progress, pk=id)
         return Response({
+            "id": id,
             "user": progress.user.username,
             "weight": progress.weight,
             "image_url": progress.image.name,
