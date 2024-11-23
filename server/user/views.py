@@ -1,10 +1,12 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import CustomUser
+from rest_framework.permissions import IsAuthenticated;
+from django.shortcuts import get_object_or_404
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -91,3 +93,22 @@ def login(request):
         }
     }, status=status.HTTP_200_OK)
 
+@api_view(['POST', 'GET'])
+def user(request, id):
+    if request.method == 'POST':
+        users = CustomUser.objects.values('id', 'username', 'first_name', 'last_name', 'email', 'age', 'gender')
+        return Response(list(users))
+    
+    if request.method == 'GET':
+        user = get_object_or_404(CustomUser, pk=id)
+        return Response({
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "age": user.age,
+            "gender": user.gender
+        }
+    }, status=status.HTTP_200_OK)
