@@ -93,8 +93,9 @@ def login(request):
         }
     }, status=status.HTTP_200_OK)
 
+@permission_classes([IsAuthenticated])
 @api_view(['POST', 'GET'])
-def user(request, id):
+def user(request, id=None):
     if request.method == 'POST':
         users = CustomUser.objects.values('id', 'username', 'first_name', 'last_name', 'email', 'age', 'gender')
         return Response(list(users))
