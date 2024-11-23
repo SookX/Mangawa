@@ -17,7 +17,7 @@ const DataProvider = ({ children }) => {
 
 
     // Sets the url for the backend server
-    axios.defaults.baseURL = 'http://127.0.0.1:8000/'
+    axios.defaults.baseURL = 'http://127.0.0.1:8000/api'
 
 
 
