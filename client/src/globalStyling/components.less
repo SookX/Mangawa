@@ -1,0 +1,49 @@
+// SCREEN OVERLAY
+.screen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    width: 100%;
+    height: 100%;
+}
+
+
+
+
+/* LAYOUT GRID */
+.layout-grid {
+    .screen-overlay();
+
+    display: flex;
+    gap: var(--grid-gutter);
+    padding: 0 var(--grid-padding);
+
+    pointer-events: none;
+
+
+
+    &.hidden .grid-column {
+        display: none;
+    }
+
+
+    .grid-column {
+        width: 100%;
+    }
+}
+
+
+.grid-btn {
+    position: fixed;
+    bottom: 3.2rem;
+    right: 6.4rem;
+
+    opacity: 0;
+
+    z-index: 100;
+
+    &:hover {
+        opacity: 1;
+    }
+}

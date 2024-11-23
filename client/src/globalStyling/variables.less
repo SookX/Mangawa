@@ -1,0 +1,23 @@
+// FONTS
+@font-primary: sans-serif;
+@font-secondary: sans-serif;
+
+
+
+:root {
+    // LAYOUT GRID
+    --grid-padding: 6.4rem;
+    --grid-gutter: 2.4rem;
+    --grid-columns: 12;
+    --grid-column-width: calc(calc(100vw - calc(calc(var(--grid-columns) - 1) * var(--grid-gutter)) - calc(var(--grid-padding) * 2)) / var(--grid-columns));
+}
+
+
+
+// SPACING
+@0colIn: var(--grid-padding);
+@1colIn: calc(var(--grid-padding) + var(--grid-column-width) + var(--grid-gutter));
+@2colIn: calc(var(--grid-padding) + calc(calc(var(--grid-column-width) + var(--grid-gutter)) * 2));
+@3colIn: calc(var(--grid-padding) + calc(calc(var(--grid-column-width) + var(--grid-gutter)) * 3));
+@4colIn: calc(var(--grid-padding) + calc(calc(var(--grid-column-width) + var(--grid-gutter)) * 4));
+@5colIn: calc(var(--grid-padding) + calc(calc(var(--grid-column-width) + var(--grid-gutter)) * 5));
