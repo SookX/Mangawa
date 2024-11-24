@@ -3,7 +3,7 @@ import { DataContext } from "../../context/DataContext"
 
 const Login = () => {
     // Gets global data from the context
-    const { crud, access, setAccess, navigate } = useContext(DataContext)
+    const { crud, access, setAccess, refresh, setRefresh, navigate } = useContext(DataContext)
 
 
 
@@ -44,11 +44,13 @@ const Login = () => {
         console.log(response)
 
         if(response.status == 200) {
-            setAccess(response.data.token)
-            localStorage.setItem('access', response.data.token)
+            setAccess(response.data.token.access)
+            setRefresh(response.data.token.refresh)
+            localStorage.setItem('access', response.data.token.access)
+            localStorage.setItem('refresh', response.data.token.refresh)
             navigate('/dashboard')
         }
-        else setError(response.data.error)
+        else setError(response.response.data.error)
 
         setLoading(false)
     }

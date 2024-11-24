@@ -54,7 +54,7 @@ const Register = () => {
         console.log(response)
 
         if(response.status == 201) navigate('/login')
-        else setError(response.data.error)
+        else setError(response.response.data.error)
 
         setLoading(false)
     }
