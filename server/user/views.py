@@ -1,4 +1,3 @@
-from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -10,7 +9,6 @@ from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from django.urls import reverse
 from django.conf import settings
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
@@ -97,34 +95,41 @@ def login(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    user = authenticate(email=email, password=password)
-
-    if user is None:
+    try:
+        user = CustomUser.objects.get(email=email)
+    except CustomUser.DoesNotExist:
         return Response(
             {"error": "Invalid email or password"},
             status=status.HTTP_401_UNAUTHORIZED
         )
 
-    if user.is_active is False:
-        return Response({"error": "User is insactive"},
-        status=status.HTTP_400_BAD_REQUEST
+    if not user.check_password(password):
+        return Response(
+            {"error": "Invalid email or password"},
+            status=status.HTTP_401_UNAUTHORIZED
         )
-    else:
-        token = get_tokens_for_user(user)
 
-        return Response({
-            "message": "Login successful",
-            "token": token,
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "email": user.email,
-                "age": user.age,
-                "gender": user.gender
-            }
-        }, status=status.HTTP_200_OK)
+    if not user.is_active:
+        return Response(
+            {"error": "User is inactive. Please activate your account."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    token = get_tokens_for_user(user)
+
+    return Response({
+        "message": "Login successful",
+        "token": token,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "age": user.age,
+            "gender": user.gender
+        }
+    }, status=status.HTTP_200_OK)
 
 @api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticated])
