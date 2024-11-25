@@ -30,9 +30,8 @@ def send_activation_email(user, request):
 
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    activation_link = request.build_absolute_uri(
-        reverse('activate-user', kwargs={'uidb64': uid, 'token': str(token)})
-    )
+    
+    activation_link = f"http://localhost:5173/activate/{uid}/{token}"
     
     send_mail(
         subject="Activate Your Account",
