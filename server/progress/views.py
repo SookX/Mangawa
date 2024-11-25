@@ -16,16 +16,23 @@ def progress(request, id=None):
         weight = request.data.get('weight')
         image = request.FILES.get('image')
         height = request.data.get('height')
-
+        date = request.data.get('date')
+        
         if not (weight and image and height):
             return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
         
+        try:
+            date = datetime.strptime(date, '%Y-%m-%d').date() if date else datetime.now().date()
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+
         progress = Progress.objects.create(
             user=user,
             weight=weight,
             image=image,
-            height=height
-        )   
+            height=height,
+            date=date
+        )
 
         progress.image.name = f"{CLOUDINARY_BASE_URL}{progress.image.name}"
         progress.save()
