@@ -7,6 +7,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import CustomUser
 from rest_framework.permissions import IsAuthenticated;
 from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.urls import reverse
+from django.conf import settings
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -14,6 +21,25 @@ def get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
+def send_activation_email(user, request):
+    
+    """
+    Generates an activation link and sends it to the user's email.
+    """
+
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    activation_link = request.build_absolute_uri(
+        reverse('activate-user', kwargs={'uidb64': uid, 'token': str(token)})
+    )
+    
+    send_mail(
+        subject="Activate Your Account",
+        message=f"Hi {user.username}, please activate your account using the following link: {activation_link}",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+    )
 
 @api_view(['POST'])
 def register(request):
@@ -50,11 +76,14 @@ def register(request):
         email=email,
         password=make_password(password),
         age=age,
-        gender=gender
+        gender=gender,
+        is_active=False
     )
 
+    send_activation_email(user, request)    
+
     return Response(
-        {"message": "User registered successfully"},
+        {"message": "User registered successfully. Please check your email to activate your account."},
         status=status.HTTP_201_CREATED
     )
 
@@ -114,3 +143,27 @@ def user(request, id=None):
     if request.method == 'GET' and id is None:
         users = CustomUser.objects.values('id', 'username', 'first_name', 'last_name', 'email', 'age', 'gender')
         return Response(list(users))
+
+@api_view(['GET'])
+def activate_user(request, uidb64, token):
+    
+    """
+    Activates the user account by verifying the activation token.
+    Decodes the user ID from the URL, checks the validity of the token,
+    and sets the user's account to active if the token is valid.
+    Returns a success message if the account is activated, or an error message 
+    if the token is invalid or expired.
+    """
+    
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = CustomUser.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+        return Response({"error": "Invalid activation link"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return Response({"message": "Account activated successfully"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
