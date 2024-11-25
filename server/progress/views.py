@@ -4,6 +4,7 @@ from .models import Progress
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated;
 from rest_framework import status
+from datetime import datetime
 
 CLOUDINARY_BASE_URL = "https://res.cloudinary.com/djm6yhqvx/image/upload/"
 
@@ -35,17 +36,24 @@ def progress(request, id=None):
             "progress_id": progress.id
         }, status=status.HTTP_201_CREATED)
     
-    if request.method == 'GET' and id is not None:
-        progress = get_object_or_404(Progress, pk=id)
-        return Response({
-            "id": id,
-            "user": progress.user.username,
-            "weight": progress.weight,
-            "image_url": progress.image.name,
-            "height": progress.height,
-            "date": progress.date
-        })
-    
-    if request.method == 'GET' and id is None:
-        progress_data = Progress.objects.filter(user=request.user).values('id', 'weight', 'image', 'height', 'date')
-        return Response(list(progress_data))
+    if request.method == 'GET':
+
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+
+        try:
+            if start_date:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            if end_date:
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if start_date and end_date:
+            progress_data = Progress.objects.filter(user=request.user, date__range=[start_date, end_date]).values('id', 'weight', 'height', 'date')
+        elif start_date:
+            progress_data = Progress.objects.filter(user=request.user, date=start_date).values('id', 'weight', 'image', 'height', 'date')
+        else:
+            progress_data = Progress.objects.filter(user=request.user).values('id', 'weight', 'height', 'date')
+
+        return Response(list(progress_data), status=status.HTTP_200_OK)
