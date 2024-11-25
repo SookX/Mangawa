@@ -99,6 +99,11 @@ def login(request):
 
     user = authenticate(email=email, password=password)
 
+    if user.is_active is False:
+        return Response({"error": "User is insactive"},
+        status=status.HTTP_400_BAD_REQUEST
+        )
+
     if user is None:
         return Response(
             {"error": "Invalid email or password"},
@@ -157,6 +162,8 @@ def activate_user(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
         user = CustomUser.objects.get(pk=uid)
+        if user.is_active is True:
+            return Response({"error": "The user is allready activated!"}, status=status.HTTP_400_BAD_REQUEST)
     except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
         return Response({"error": "Invalid activation link"}, status=status.HTTP_400_BAD_REQUEST)
 
