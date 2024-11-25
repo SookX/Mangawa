@@ -99,32 +99,32 @@ def login(request):
 
     user = authenticate(email=email, password=password)
 
-    if user.is_active is False:
-        return Response({"error": "User is insactive"},
-        status=status.HTTP_400_BAD_REQUEST
-        )
-
     if user is None:
         return Response(
             {"error": "Invalid email or password"},
             status=status.HTTP_401_UNAUTHORIZED
         )
 
-    token = get_tokens_for_user(user)
+    if user.is_active is False:
+        return Response({"error": "User is insactive"},
+        status=status.HTTP_400_BAD_REQUEST
+        )
+    else:
+        token = get_tokens_for_user(user)
 
-    return Response({
-        "message": "Login successful",
-        "token": token,
-        "user": {
-            "id": user.id,
-            "username": user.username,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "email": user.email,
-            "age": user.age,
-            "gender": user.gender
-        }
-    }, status=status.HTTP_200_OK)
+        return Response({
+            "message": "Login successful",
+            "token": token,
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "age": user.age,
+                "gender": user.gender
+            }
+        }, status=status.HTTP_200_OK)
 
 @api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticated])
