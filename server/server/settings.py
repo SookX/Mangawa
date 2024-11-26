@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'progress',
+    'splitday',
 ]
 
 REST_FRAMEWORK = {
