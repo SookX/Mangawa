@@ -131,9 +131,16 @@ def login(request):
         }
     }, status=status.HTTP_200_OK)
 
-@api_view(['POST', 'GET'])
+@api_view(['POST', 'GET', 'PUT'])
 @permission_classes([IsAuthenticated])
 def user(request, id=None):
+
+    """
+    Handles retrieving a user by ID or a list of all users. If a PUT request is received, updates the password for the authenticated user.
+    Validates old and new passwords before updating the user's password.
+    Returns appropriate success or error messages based on the operation.
+    """
+
     
     if request.method == 'GET' and id is not None:
         user = get_object_or_404(CustomUser, pk=id)
@@ -152,6 +159,28 @@ def user(request, id=None):
     if request.method == 'GET' and id is None:
         users = CustomUser.objects.values('id', 'username', 'first_name', 'last_name', 'email', 'age', 'gender')
         return Response(list(users))
+    
+    if request.method == 'PUT':
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+
+        if not old_password or not new_password:
+            return Response(
+                {"error": "Both old_password and new_password are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user.check_password(old_password):
+            return Response(
+                {"error": "Old password is incorrect"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response({"message": "Password has been changed successfully"}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 def activate_user(request, uidb64, token):
@@ -178,3 +207,63 @@ def activate_user(request, uidb64, token):
         return Response({"message": "Account activated successfully"}, status=status.HTTP_200_OK)
     else:
         return Response({"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def forgot_password(request):
+    
+    """
+    Handles password reset requests. Verifies the email provided in the request,
+    generates a password reset token and unique ID, and sends a password reset link
+    to the user's email. Returns a success message if the email is valid, or an 
+    error message if the email does not exist.
+    """
+    
+    email = request.data.get('email')
+    if not email:
+        return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = CustomUser.objects.get(email=email)
+    except CustomUser.DoesNotExist:
+        return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    reset_link = f"http://localhost:5173/reset-password/{uid}/{token}"
+
+    send_mail(
+        subject="Reset Your Password",
+        message=f"Hi {user.username}, use the link below to reset your password: {reset_link}",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[email],
+    )
+
+    return Response({"message": "Password reset link has been sent to your email"}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def reset_password(request, uidb64, token):
+
+    """
+    Handles resetting a user's password using a unique ID and token.
+    Decodes the user ID, validates the token, and updates the user's password
+    if the token is valid. Returns a success message if the password is reset,
+    or an error message if the token or reset link is invalid or expired.
+    """
+
+
+    new_password = request.data.get('password')
+    if not new_password:
+        return Response({"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = CustomUser.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+        return Response({"error": "Invalid or expired reset link"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not default_token_generator.check_token(user, token):
+        return Response({"error": "Invalid or expired reset token"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.set_password(new_password)
+    user.save()
+    return Response({"message": "Password has been reset successfully"}, status=status.HTTP_200_OK)
