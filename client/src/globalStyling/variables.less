@@ -21,3 +21,22 @@
 @3colIn: calc(var(--grid-padding) + calc(calc(var(--grid-column-width) + var(--grid-gutter)) * 3));
 @4colIn: calc(var(--grid-padding) + calc(calc(var(--grid-column-width) + var(--grid-gutter)) * 4));
 @5colIn: calc(var(--grid-padding) + calc(calc(var(--grid-column-width) + var(--grid-gutter)) * 5));
+
+
+
+// COLORS
+.tint(@selector, @color, @percentage) {
+    @red: red(@color) + ((255 - red(@color)) * @percentage / 100);
+    @green: green(@color) + ((255 - green(@color)) * @percentage / 100);
+    @blue: blue(@color) + ((255 - blue(@color)) * @percentage / 100);
+
+    @{selector}: color(rgb(@red, @green, @blue));
+}
+
+.shade(@selector, @color, @percentage) {
+    @red: red(@color) * ((100 - @percentage) / 100);
+    @green: green(@color) * ((100 - @percentage) / 100);
+    @blue: blue(@color) * ((100 - @percentage) / 100);
+
+    @{selector}: color(rgb(@red, @green, @blue));
+}
