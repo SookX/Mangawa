@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated;
 from rest_framework import status
 from datetime import datetime
 
-CLOUDINARY_BASE_URL = "https://res.cloudinary.com/djm6yhqvx/image/upload/"
+CLOUDINARY_BASE_URL = "https://res.cloudinary.com/djm6yhqvx/image/upload/media/"
 
 @api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticated])
