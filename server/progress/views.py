@@ -34,21 +34,13 @@ def progress(request, id=None):
             date=date
         )
 
-        # print(progress.image.url)
-        # progress.image.name = f"{CLOUDINARY_BASE_URL}{progress.image.name}"
-        # progress.save()
-
-        print(progress.image.url)
-        #image_url = f"{CLOUDINARY_BASE_URL}{progress.image.name}"
-
         return Response({
             "message": "Progress uploaded successfully",
-            "image_url": progress.image.url,
+            "image_url": progress.image.url,  
             "progress_id": progress.id
         }, status=status.HTTP_201_CREATED)
     
     if request.method == 'GET':
-
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
 
@@ -66,9 +58,5 @@ def progress(request, id=None):
             progress_data = Progress.objects.filter(user=request.user, date=start_date).values('id', 'weight', 'image', 'height', 'date')
         else:
             progress_data = Progress.objects.filter(user=request.user).values('id', 'weight', 'height', 'date')
-
-        # for progress in progress_data:
-        #     if progress['image']:
-        #         progress['image'] = f"{CLOUDINARY_BASE_URL}{progress['image']}"
 
         return Response(list(progress_data), status=status.HTTP_200_OK)
