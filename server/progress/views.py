@@ -34,12 +34,13 @@ def progress(request, id=None):
             date=date
         )
 
-        progress.image.name = f"{CLOUDINARY_BASE_URL}{progress.image.name}"
-        progress.save()
+        # print(progress.image.url)
+        # progress.image.name = f"{CLOUDINARY_BASE_URL}{progress.image.name}"
+        # progress.save()
 
         return Response({
             "message": "Progress uploaded successfully",
-            "image_url": progress.image.name,
+            "image_url": progress.image.url,
             "progress_id": progress.id
         }, status=status.HTTP_201_CREATED)
     
