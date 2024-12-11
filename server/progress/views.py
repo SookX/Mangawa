@@ -5,14 +5,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated;
 from rest_framework import status
 from datetime import datetime
-
-#CLOUDINARY_BASE_URL = "https://res.cloudinary.com/djm6yhqvx/image/upload/"
+import cloudinary
+import cloudinary.uploader
 
 @api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticated])
-def progress(request, id=None):
+def progress(request):
     if request.method == 'POST':
-        user = request.user 
+        user = request.user
         weight = request.data.get('weight')
         image = request.FILES.get('image')
         height = request.data.get('height')
@@ -26,17 +26,21 @@ def progress(request, id=None):
         except ValueError:
             return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
 
+        upload_result = cloudinary.uploader.upload(image)
+
+        image_url = upload_result['secure_url']
+
         progress = Progress.objects.create(
             user=user,
             weight=weight,
-            image=image,
+            image=image_url, 
             height=height,
             date=date
         )
 
         return Response({
             "message": "Progress uploaded successfully",
-            "image_url": progress.image.url,  
+            "image_url": image_url,
             "progress_id": progress.id
         }, status=status.HTTP_201_CREATED)
     
