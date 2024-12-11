@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated;
 from rest_framework import status
 from datetime import datetime
 
-CLOUDINARY_BASE_URL = "https://res.cloudinary.com/djm6yhqvx/image/upload/"
+#CLOUDINARY_BASE_URL = "https://res.cloudinary.com/djm6yhqvx/image/upload/"
 
 @api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticated])
@@ -39,11 +39,11 @@ def progress(request, id=None):
         # progress.save()
 
         print(progress.image.url)
-        image_url = f"{CLOUDINARY_BASE_URL}{progress.image.name}"
+        #image_url = f"{CLOUDINARY_BASE_URL}{progress.image.name}"
 
         return Response({
             "message": "Progress uploaded successfully",
-            "image_url": image_url,
+            "image_url": progress.image.url,
             "progress_id": progress.id
         }, status=status.HTTP_201_CREATED)
     
@@ -67,8 +67,8 @@ def progress(request, id=None):
         else:
             progress_data = Progress.objects.filter(user=request.user).values('id', 'weight', 'height', 'date')
 
-        for progress in progress_data:
-            if progress['image']:
-                progress['image'] = f"{CLOUDINARY_BASE_URL}{progress['image']}"
+        # for progress in progress_data:
+        #     if progress['image']:
+        #         progress['image'] = f"{CLOUDINARY_BASE_URL}{progress['image']}"
 
         return Response(list(progress_data), status=status.HTTP_200_OK)
